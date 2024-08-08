@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Ideas</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Generate Gift Ideas</h1>
+        <div class="row">
+            <div class="col-md-12">
+                <form id="giftForm">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="text" class="form-control" id="age" placeholder="Enter age">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <input type="text" class="form-control" id="gender" placeholder="Enter gender">
+                    </div>
+                    <div class="form-group">
+                        <label for="occasion">Occasion</label>
+                        <input type="text" class="form-control" id="occasion" placeholder="Enter occasion">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient_type">Recipient Type</label>
+                        <input type="text" class="form-control" id="recipient_type" placeholder="Enter recipient type">
+                    </div>
+                    <div class="form-group">
+                        <label for="categories">Categories</label>
+                        <input type="text" class="form-control" id="categories" placeholder="Enter categories">
+                    </div>
+                    <div class="form-group">
+                        <label for="price_range">Price Range</label>
+                        <input type="text" class="form-control" id="price_range" placeholder="Enter price range">
+                    </div>
+                    <div class="form-group">
+                        <label for="prompt">Prompt</label>
+                        <textarea class="form-control" id="prompt" rows="3" placeholder="Enter custom prompt"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Generate Gift Ideas</button>
+                </form>
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#giftForm').on('submit', function(event) {
+                event.preventDefault();
+
+                let data = {
+                    age: $('#age').val(),
+                    gender: $('#gender').val(),
+                    occasion: $('#occasion').val(),
+                    recipient_type: $('#recipient_type').val(),
+                    categories: $('#categories').val().split(','),
+                    price_range: $('#price_range').val(),
+                    prompt: $('#prompt').val()
+                };
+
+                $.ajax({
+                    url: '/generate_gift_idea',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        let resultHTML = '<h2>Gift Ideas</h2>';
+                        if (response.error) {
+                            resultHTML += `<div class="alert alert-danger">${response.error}</div>`;
+                        } else {
+                            resultHTML += '<div class="row">';
+                            response.forEach(function(item) {
+                                if (item.error) {
+                                    resultHTML += `<div class="col-md-4"><div class="alert alert-warning">${item.error}</div></div>`;
+                                } else {
+                                    resultHTML += `
+                                        <div class="col-md-4">
+                                            <div class="card mb-4">
+                                                <img class="card-img-top" src="${item.image}" alt="${item.title}">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">${item.title}</h5>
+                                                    <p class="card-text">${item.reason}</p>
+                                                    <p class="card-text"><strong>Price:</strong> ${item.price}</p>
+                                                    <a href="${item.url}" class="btn btn-primary" target="_blank">Buy Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            });
+                            resultHTML += '</div>';
+                        }
+                        $('#results').html(resultHTML);
+                    },
+                    error: function() {
+                        $('#results').html('<div class="alert alert-danger">An error occurred while generating gift ideas. Please try again.</div>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
